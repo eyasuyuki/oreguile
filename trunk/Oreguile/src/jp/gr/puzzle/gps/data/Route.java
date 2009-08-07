@@ -1,5 +1,10 @@
 package jp.gr.puzzle.gps.data;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.google.android.maps.GeoPoint;
+
 import android.database.Cursor;
 
 public class Route {
@@ -7,6 +12,7 @@ public class Route {
 	private String name;
 	private long start;
 	private long end;
+	private List<GeoPoint> points = new ArrayList<GeoPoint>();
 	public Route() {}
 	public long getRowid() {
 		return rowid;
@@ -39,5 +45,11 @@ public class Route {
 		route.setStart(cursor.getLong(2));
 		route.setEnd(cursor.getLong(3));
 		return route;
+	}
+	public void add(GeoPoint point) {
+		points.add(point);
+	}
+	public List<GeoPoint> getPoints() {
+		return points;
 	}
 }
