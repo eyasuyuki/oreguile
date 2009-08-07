@@ -1,5 +1,7 @@
 package jp.gr.puzzle.gps;
 
+import java.util.List;
+
 import jp.gr.puzzle.gps.data.Helper;
 import jp.gr.puzzle.gps.data.LocationDao;
 import jp.gr.puzzle.gps.data.LocationData;
@@ -26,11 +28,12 @@ import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
+import com.google.android.maps.Overlay;
 
 public class Oreguile extends MapActivity {
 	private static final String TAG = "Oregaulie";
-	private static final int UNIT = 10;
-	private static final double UNIT2 = 10.0;
+	private static final int UNIT = 5;
+	private static final double UNIT2 = 5.0;
 	
 	private boolean isObserved;
 
@@ -47,6 +50,7 @@ public class Oreguile extends MapActivity {
 	private SQLiteDatabase db = null;
 	private RouteDao routeDao = null;
 	private LocationDao locationDao = null;
+	private RouteOverlay routeOverlay = null;
 	
     @Override
 	protected boolean isRouteDisplayed() {
@@ -81,7 +85,7 @@ public class Oreguile extends MapActivity {
     	frame = (FrameLayout)findViewById(R.id.frame);
         map = (MapView)findViewById(R.id.map);
         controller = map.getController();
-    }
+            }
     
     @Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -119,18 +123,29 @@ public class Oreguile extends MapActivity {
     			updateMyLocation(point);
     		}
     	});
-    	map.getOverlays().add(overlay);
+        List<Overlay> overlays = map.getOverlays();
+        if (!overlays.contains(overlay)) {
+        	overlays.add(overlay);
+        }
+        // route overlay
+        routeOverlay = new RouteOverlay();
+        if (!overlays.contains(routeOverlay)) {
+        	overlays.add(routeOverlay);
+        }
+        map.invalidate();
     }
     
     private void updateMyLocation(Location location) {
 		int late6 = (int)(location.getLatitude() * 1E6);
 		int lone6 = (int)(location.getLongitude() * 1E6);
-		updateMyLocation(new GeoPoint(late6, lone6));
+		GeoPoint g = new GeoPoint(late6, lone6);
+		updateMyLocation(g);
 		if (isObserved && currentRoute != null) {
 			LocationData data = LocationData.create(location);
 			data.setRouteId(currentRoute.getRowid());
 			locationDao.insert(data);
-			Toast.makeText(Oreguile.this, "isObserved=" + isObserved + ", location=" + location.toString(), Toast.LENGTH_LONG).show();
+			Toast.makeText(Oreguile.this, "geoPoint=" + g, Toast.LENGTH_LONG).show();
+			currentRoute.getPoints().add(g);
 		}
     }
 
@@ -147,11 +162,9 @@ public class Oreguile extends MapActivity {
     private void initLocationListener() {
     	listener = new LocationListener() {
 			public void onLocationChanged(Location location) {
-//				Toast.makeText(Oreguile.this, location.toString(), Toast.LENGTH_LONG).show();
 				Location prev = loc;
 				if (prev != null && isMoved(location, prev)) {
 					dist += location.distanceTo(prev);
-//					Toast.makeText(Oreguile.this, "dist=" + dist, Toast.LENGTH_LONG).show();
 					if (dist >= UNIT2) {
 						dist = 0.0f;
 						Log.d(TAG, "location=" + location);
@@ -175,7 +188,7 @@ public class Oreguile extends MapActivity {
     		// update route
     		routeDao.update(currentRoute);
     		// reset
-    		currentRoute = null;
+    		//currentRoute = null; // TEST
     		isObserved = false;
     	} else {
     		// create route
@@ -184,7 +197,9 @@ public class Oreguile extends MapActivity {
     		// insert route
     		long rowid = routeDao.insert(currentRoute);
     		// get stored data
-    		currentRoute.setRowid(rowid); 
+    		currentRoute.setRowid(rowid);
+    		// route overlay
+    		routeOverlay.setRoute(currentRoute);
     		// init
     		isObserved = true;
     	}
