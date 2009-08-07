@@ -130,12 +130,16 @@ public class Oreguile extends MapActivity {
         // route overlay
         routeOverlay = new RouteOverlay();
         if (!overlays.contains(routeOverlay)) {
+        	routeOverlay.setRoute(currentRoute);//TEST
         	overlays.add(routeOverlay);
+        	Log.d(TAG, "routeOverlay added.");
+        } else {
+        	Log.d(TAG, "routeOverlay exists.");
         }
         map.invalidate();
     }
     
-    private void updateMyLocation(Location location) {
+    private void updateMyLocation(Location location, double length) {
 		int late6 = (int)(location.getLatitude() * 1E6);
 		int lone6 = (int)(location.getLongitude() * 1E6);
 		GeoPoint g = new GeoPoint(late6, lone6);
@@ -144,8 +148,9 @@ public class Oreguile extends MapActivity {
 			LocationData data = LocationData.create(location);
 			data.setRouteId(currentRoute.getRowid());
 			locationDao.insert(data);
-			Toast.makeText(Oreguile.this, "geoPoint=" + g, Toast.LENGTH_LONG).show();
-			currentRoute.getPoints().add(g);
+//			Toast.makeText(Oreguile.this, "geoPoint=" + g, Toast.LENGTH_LONG).show();
+			currentRoute.add(g);
+			currentRoute.add(location);
 		}
     }
 
@@ -164,11 +169,12 @@ public class Oreguile extends MapActivity {
 			public void onLocationChanged(Location location) {
 				Location prev = loc;
 				if (prev != null && isMoved(location, prev)) {
-					dist += location.distanceTo(prev);
+					double length = location.distanceTo(prev);
+					dist += length;
 					if (dist >= UNIT2) {
 						dist = 0.0f;
 						Log.d(TAG, "location=" + location);
-						updateMyLocation(location);
+						updateMyLocation(location, length);
 					}
 				}
 				loc = location;
@@ -185,6 +191,8 @@ public class Oreguile extends MapActivity {
     	if (isObserved) {
     		// end time
     		currentRoute.setEnd(System.currentTimeMillis());
+    		// calc speed and length
+    		currentRoute.summary();
     		// update route
     		routeDao.update(currentRoute);
     		// reset
