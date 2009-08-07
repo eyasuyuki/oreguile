@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteDatabase.CursorFactory;
 public class Helper extends SQLiteOpenHelper {
 
 	private static final String DATABASE_NAME = "data";
-	private static final int DATABASE_VERSION = 1;
+	private static final int DATABASE_VERSION = 2;
 	private static final String CREATE_LOCATION_SQL =
 		"create table location ( " +
 		"    rawid integer primary key autoincrement " +
@@ -33,6 +33,8 @@ public class Helper extends SQLiteOpenHelper {
 		"    ,name text " +
 		"    ,start integer" +
 		"    ,end integer" +
+		"    ,speed real" +
+		"    ,length real" +
 		" ) ";
 	private static final String DROP_LOCATION_SQL = "drop table if exists location";
 	private static final String DROP_ROUTE_SQL = "drop table if exists route";

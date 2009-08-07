@@ -8,11 +8,13 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 public class RouteDao {
-	private static final String TABLE_NAME   = "route";
-	private static final String COLUMN_ROWID = "rowid";
-	private static final String COLUMN_NAME  = "name";
-	private static final String COLUMN_START = "start";
-	private static final String COLUMN_END   = "end";
+	private static final String TABLE_NAME    = "route";
+	private static final String COLUMN_ROWID  = "rowid";
+	private static final String COLUMN_NAME   = "name";
+	private static final String COLUMN_START  = "start";
+	private static final String COLUMN_END    = "end";
+	private static final String COLUMN_SPEED  = "speed";
+	private static final String COLUMN_LENGTH = "length";
 	private static final String[] COLUMNS =
 		{COLUMN_ROWID, COLUMN_NAME, COLUMN_START, COLUMN_END};
 	
@@ -27,6 +29,8 @@ public class RouteDao {
 		values.put(COLUMN_NAME, route.getName());
 		values.put(COLUMN_START, route.getStart());
 		values.put(COLUMN_END, route.getEnd());
+		values.put(COLUMN_SPEED, route.getSpeed());
+		values.put(COLUMN_LENGTH, route.getLength());
 		return db.insert(TABLE_NAME, null, values);
 	}
 	
@@ -35,6 +39,8 @@ public class RouteDao {
 		values.put(COLUMN_NAME, route.getName());
 		values.put(COLUMN_START, route.getStart());
 		values.put(COLUMN_END, route.getEnd());
+		values.put(COLUMN_SPEED, route.getSpeed());
+		values.put(COLUMN_LENGTH, route.getLength());
 		String whereClause = "rowid = " + route.getRowid();
 		return db.update(TABLE_NAME, values, whereClause, null);
 	}
