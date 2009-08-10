@@ -101,6 +101,7 @@ public class Oreguile extends MapActivity {
 		CharSequence startLabel = getText(R.string.start_label);
 		CharSequence stopLabel = getText(R.string.stop_label);
 		startStopItem.setTitle(isObserved ? stopLabel : startLabel);
+		startStopItem.setIcon(isObserved ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play);
     }
 
 	private void initZoomControll() {
