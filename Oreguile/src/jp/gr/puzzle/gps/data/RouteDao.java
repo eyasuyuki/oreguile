@@ -62,4 +62,9 @@ public class RouteDao {
 		}
 		return null;
 	}
+	public long nextId() {
+		long next = -1;
+		String selection = "max(rowid) next";
+		return next;
+	}
 }
