@@ -34,7 +34,7 @@ public class Oreguile extends MapActivity {
 	private static final String TAG = "Oregaulie";
 	private static final int UNIT = 5;
 	private static final double UNIT2 = 5.0;
-	
+
 	private boolean isObserved;
 
 	private float dist = 0.0f;
@@ -51,43 +51,44 @@ public class Oreguile extends MapActivity {
 	private RouteDao routeDao = null;
 	private LocationDao locationDao = null;
 	private RouteOverlay routeOverlay = null;
-	
-    @Override
+
+	@Override
 	protected boolean isRouteDisplayed() {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	/** Called when the activity is first created. */
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-        
-        currentRoute = (Route)this.getLastNonConfigurationInstance();
-        isObserved = currentRoute != null;
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.main);
 
-        initDatabase();
-        initViews();
-        initZoomControll();
-        initMyLocation();
-        initLocationListener();
-    }
-    
-    private void initDatabase() {
-    	Helper helper = new Helper(this);
-    	db = helper.getWritableDatabase();
-    	routeDao = new RouteDao(db);
-    	locationDao = new LocationDao(db);
-    }
-    
-    private void initViews() {
-    	frame = (FrameLayout)findViewById(R.id.frame);
-        map = (MapView)findViewById(R.id.map);
-        controller = map.getController();
-            }
-    
-    @Override
+		currentRoute = (Route) this.getLastNonConfigurationInstance();
+		if (currentRoute == null) isObserved = false;
+		else 					  isObserved = currentRoute.isObserved();
+
+		initDatabase();
+		initViews();
+		initZoomControll();
+		initMyLocation();
+		initLocationListener();
+	}
+
+	private void initDatabase() {
+		Helper helper = new Helper(this);
+		db = helper.getWritableDatabase();
+		routeDao = new RouteDao(db);
+		locationDao = new LocationDao(db);
+	}
+
+	private void initViews() {
+		frame = (FrameLayout) findViewById(R.id.frame);
+		map = (MapView) findViewById(R.id.map);
+		controller = map.getController();
+	}
+
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 		MenuInflater inflater = getMenuInflater();
@@ -96,77 +97,78 @@ public class Oreguile extends MapActivity {
 		setStartStopLabel();
 		return true;
 	}
-    
-    private void setStartStopLabel() {
+
+	private void setStartStopLabel() {
 		CharSequence startLabel = getText(R.string.start_label);
 		CharSequence stopLabel = getText(R.string.stop_label);
 		startStopItem.setTitle(isObserved ? stopLabel : startLabel);
-		startStopItem.setIcon(isObserved ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play);
-    }
+		startStopItem.setIcon(isObserved ? android.R.drawable.ic_media_pause
+				: android.R.drawable.ic_menu_mylocation);
+	}
 
 	private void initZoomControll() {
-    	View zoomControl = map.getZoomControls();
-    	FrameLayout.LayoutParams p =
-    		new FrameLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
-    									LayoutParams.WRAP_CONTENT,
-    									Gravity.BOTTOM + Gravity.CENTER_HORIZONTAL);
-    	frame.addView(zoomControl, p);
-    }
-    
-    private void initMyLocation() {
-    	overlay = new MyLocationOverlay(this, map);
-    	overlay.enableMyLocation();
-    	overlay.enableCompass();
-    	overlay.runOnFirstFix(new Runnable() {
-    		public void run() {
-    			controller.setZoom(64);
-    			GeoPoint point = overlay.getMyLocation();
-    			updateMyLocation(point);
-    		}
-    	});
-        List<Overlay> overlays = map.getOverlays();
-        if (!overlays.contains(overlay)) {
-        	overlays.add(overlay);
-        }
-        // route overlay
-        routeOverlay = new RouteOverlay();
-        if (!overlays.contains(routeOverlay)) {
-        	routeOverlay.setRoute(currentRoute);//TEST
-        	overlays.add(routeOverlay);
-        	Log.d(TAG, "routeOverlay added.");
-        } else {
-        	Log.d(TAG, "routeOverlay exists.");
-        }
-        map.invalidate();
-    }
-    
-    private void updateMyLocation(Location location, double length) {
-		int late6 = (int)(location.getLatitude() * 1E6);
-		int lone6 = (int)(location.getLongitude() * 1E6);
+		View zoomControl = map.getZoomControls();
+		FrameLayout.LayoutParams p = new FrameLayout.LayoutParams(
+				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
+				Gravity.BOTTOM + Gravity.CENTER_HORIZONTAL);
+		frame.addView(zoomControl, p);
+	}
+
+	private void initMyLocation() {
+		overlay = new MyLocationOverlay(this, map);
+		overlay.enableMyLocation();
+		overlay.enableCompass();
+		overlay.runOnFirstFix(new Runnable() {
+			public void run() {
+				controller.setZoom(64);
+				GeoPoint point = overlay.getMyLocation();
+				updateMyLocation(point);
+			}
+		});
+		List<Overlay> overlays = map.getOverlays();
+		if (!overlays.contains(overlay)) {
+			overlays.add(overlay);
+		}
+		// route overlay
+		routeOverlay = new RouteOverlay();
+		if (!overlays.contains(routeOverlay)) {
+			routeOverlay.setRoute(currentRoute);// TEST
+			overlays.add(routeOverlay);
+			Log.d(TAG, "routeOverlay added.");
+		} else {
+			Log.d(TAG, "routeOverlay exists.");
+		}
+		map.invalidate();
+	}
+
+	private void updateMyLocation(Location location, double length) {
+		int late6 = (int) (location.getLatitude() * 1E6);
+		int lone6 = (int) (location.getLongitude() * 1E6);
 		GeoPoint g = new GeoPoint(late6, lone6);
 		updateMyLocation(g);
 		if (isObserved && currentRoute != null) {
 			LocationData data = LocationData.create(location);
 			data.setRouteId(currentRoute.getRowid());
 			locationDao.insert(data);
-//			Toast.makeText(Oreguile.this, "geoPoint=" + g, Toast.LENGTH_LONG).show();
+			// Toast.makeText(Oreguile.this, "geoPoint=" + g,
+			// Toast.LENGTH_LONG).show();
 			currentRoute.add(g);
 			currentRoute.add(location);
 		}
-    }
+	}
 
-    private void updateMyLocation(GeoPoint point) {
-    	if (overlay != null) {
+	private void updateMyLocation(GeoPoint point) {
+		if (overlay != null) {
 			controller.animateTo(point);
-    	}
-    }
-    
-    private boolean isMoved(Location loc, Location prev) {
-    	return loc.distanceTo(prev) > 0.1;
-    }
-    
-    private void initLocationListener() {
-    	listener = new LocationListener() {
+		}
+	}
+
+	private boolean isMoved(Location loc, Location prev) {
+		return loc.distanceTo(prev) > 0.1;
+	}
+
+	private void initLocationListener() {
+		listener = new LocationListener() {
 			public void onLocationChanged(Location location) {
 				Location prev = loc;
 				if (prev != null && isMoved(location, prev)) {
@@ -180,41 +182,51 @@ public class Oreguile extends MapActivity {
 				}
 				loc = location;
 			}
-			public void onProviderDisabled(String provider) {}
-			public void onProviderEnabled(String provider) {}
-			public void onStatusChanged(String provider, int status, Bundle extras) {}
-    	};
-		manager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-		manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, UNIT, listener);
-    }
-    
-    private void doStartStop() {
-    	if (isObserved) {
-    		// end time
-    		currentRoute.setEnd(System.currentTimeMillis());
-    		// calc speed and length
-    		currentRoute.summary();
-    		// update route
-    		routeDao.update(currentRoute);
-    		// reset
-    		//currentRoute = null; // TEST
-    		isObserved = false;
-    	} else {
-    		// create route
-    		currentRoute = new Route();
-    		currentRoute.setStart(System.currentTimeMillis());
-    		// insert route
-    		long rowid = routeDao.insert(currentRoute);
-    		// get stored data
-    		currentRoute.setRowid(rowid);
-    		// route overlay
-    		routeOverlay.setRoute(currentRoute);
-    		// init
-    		isObserved = true;
-    	}
+
+			public void onProviderDisabled(String provider) {
+			}
+
+			public void onProviderEnabled(String provider) {
+			}
+
+			public void onStatusChanged(String provider, int status,
+					Bundle extras) {
+			}
+		};
+		manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, UNIT,
+				listener);
+	}
+
+	private void doStartStop() {
+		if (isObserved) {
+			// end time
+			currentRoute.setEnd(System.currentTimeMillis());
+			// calc speed and length
+			currentRoute.summary();
+			// update route
+			routeDao.update(currentRoute);
+			// reset
+			// currentRoute = null; // TEST
+			isObserved = false;
+			currentRoute.setObserved(isObserved);
+		} else {
+			// create route
+			currentRoute = new Route();
+			currentRoute.setStart(System.currentTimeMillis());
+			// insert route
+			long rowid = routeDao.insert(currentRoute);
+			// get stored data
+			currentRoute.setRowid(rowid);
+			// route overlay
+			routeOverlay.setRoute(currentRoute);
+			// init
+			isObserved = true;
+			currentRoute.setObserved(isObserved);
+		}
 		setStartStopLabel();
-    }
-    
+	}
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
