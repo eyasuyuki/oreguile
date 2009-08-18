@@ -15,6 +15,7 @@ public class Route {
 	private long end;
 	private float speed;
 	private double length;
+	private boolean isObserved;
 	private List<Location> locations = new ArrayList<Location>();
 	private List<GeoPoint> points = new ArrayList<GeoPoint>();
 	public Route() {}
@@ -91,5 +92,11 @@ public class Route {
 	}
 	public void setLength(double length) {
 		this.length = length;
+	}
+	public boolean isObserved() {
+		return isObserved;
+	}
+	public void setObserved(boolean isObserved) {
+		this.isObserved = isObserved;
 	}
 }
